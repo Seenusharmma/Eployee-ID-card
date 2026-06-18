@@ -1,6 +1,5 @@
-"use client"
-
 export interface EmployeeData {
+  _id?: string
   employeeId: string
   name: string
   fatherName: string
@@ -20,232 +19,161 @@ export interface EmployeeData {
   createdAt: string
 }
 
-export interface AdminData {
-  email: string
-  password: string
-  name: string
+const BASE = "/api"
+
+async function api<T>(url: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(`${BASE}${url}`, {
+    headers: { "Content-Type": "application/json" },
+    ...options,
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Request failed" }))
+    throw new Error(err.error || `HTTP ${res.status}`)
+  }
+  return res.json()
 }
 
-const KEYS = {
-  employees: "lg_employees",
-  admin: "lg_admin",
-  departments: "lg_departments",
-  designations: "lg_designations",
-  settings: "lg_settings",
-  session: "lg_session",
+export async function initStorage() {
+  await api("/seed", { method: "POST" })
 }
 
-const DEFAULT_ADMIN: AdminData = {
-  email: "admin@legends.com",
-  password: "admin123",
-  name: "Admin",
-}
-
-const DEFAULT_DEPARTMENTS = [
-  "Operations", "Kitchen", "House Keeping",
-  "IT", "Maintenance", "Accounts",
-]
-
-const DEFAULT_DESIGNATIONS = [
-  "Head Brewer", "Assistant Brewer", "Brewing Technician",
-  "Quality Manager", "Quality Analyst", "Packaging Manager",
-  "Packaging Operator", "Sales Manager", "Sales Executive",
-  "Marketing Manager", "Finance Manager", "Accountant",
-  "HR Manager", "HR Executive", "Logistics Manager",
-  "Logistics Coordinator", "Maintenance Engineer",
-  "Maintenance Technician", "Administrative Officer",
-  "General Manager", "CEO", "F&B Manager", "Bartender", "Server",
-]
-
-const ID_PREFIX = "LGM-KT"
-
-function getItem<T>(key: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback
+export async function login(email: string, password: string): Promise<boolean> {
   try {
-    const raw = localStorage.getItem(key)
-    return raw ? (JSON.parse(raw) as T) : fallback
-  } catch {
-    return fallback
-  }
-}
-
-function setItem<T>(key: string, value: T) {
-  if (typeof window === "undefined") return
-  try {
-    localStorage.setItem(key, JSON.stringify(value))
-  } catch {
-    console.error("Failed to write to localStorage")
-  }
-}
-
-export function initStorage() {
-  if (typeof window === "undefined") return
-
-  setItem(KEYS.admin, DEFAULT_ADMIN)
-  if (!localStorage.getItem(KEYS.departments)) {
-    setItem(KEYS.departments, DEFAULT_DEPARTMENTS)
-  }
-  if (!localStorage.getItem(KEYS.designations)) {
-    setItem(KEYS.designations, DEFAULT_DESIGNATIONS)
-  }
-  if (!localStorage.getItem(KEYS.employees)) {
-    setItem(KEYS.employees, [])
-  }
-  if (!localStorage.getItem(KEYS.settings)) {
-    setItem(KEYS.settings, { idPrefix: ID_PREFIX })
-  }
-}
-
-export function login(email: string, password: string): boolean {
-  const admin = getItem<AdminData | null>(KEYS.admin, null)
-  if (admin && admin.email === email && admin.password === password) {
-    setItem(KEYS.session, { email, name: admin.name, loggedInAt: new Date().toISOString() })
+    await api("/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    })
     return true
-  }
-  return false
-}
-
-export function logout() {
-  localStorage.removeItem(KEYS.session)
-}
-
-export function isLoggedIn(): boolean {
-  return !!getItem<unknown>(KEYS.session, null)
-}
-
-export function getEmployees(): EmployeeData[] {
-  return getItem<EmployeeData[]>(KEYS.employees, [])
-}
-
-export function getEmployee(id: string): EmployeeData | undefined {
-  return getEmployees().find((e) => e.employeeId === id)
-}
-
-export function createEmployee(data: Omit<EmployeeData, "status" | "createdAt"> & { employeeId?: string }): EmployeeData {
-  const employees = getEmployees()
-
-  let employeeId = data.employeeId
-  if (!employeeId) {
-    const lastId = employees.length > 0
-      ? parseInt(employees[employees.length - 1].employeeId.split("-")[2] || "0", 10)
-      : 0
-    const nextNum = lastId + 1
-    employeeId = `${ID_PREFIX}-${String(nextNum).padStart(3, "0")}`
-  }
-
-  const exists = employees.find((e) => e.employeeId === employeeId)
-  if (exists) throw new Error(`Employee ID ${employeeId} already exists`)
-
-  const employee: EmployeeData = {
-    name: data.name,
-    fatherName: data.fatherName,
-    contactNumber: data.contactNumber,
-    email: data.email,
-    bloodGroup: data.bloodGroup,
-    dateOfBirth: data.dateOfBirth,
-    dateOfJoining: data.dateOfJoining,
-    department: data.department,
-    designation: data.designation,
-    emergencyContact: data.emergencyContact,
-    aadhaarNumber: data.aadhaarNumber || "",
-    address: data.address,
-    photoUrl: data.photoUrl || "",
-    signatureUrl: data.signatureUrl || "",
-    employeeId,
-    status: "active",
-    createdAt: new Date().toISOString(),
-  }
-
-  setItem(KEYS.employees, [...employees, employee])
-  return employee
-}
-
-export function updateEmployee(id: string, data: Partial<EmployeeData>): EmployeeData | undefined {
-  const employees = getEmployees()
-  const index = employees.findIndex((e) => e.employeeId === id)
-  if (index === -1) return undefined
-
-  const updated = { ...employees[index], ...data }
-  employees[index] = updated
-  setItem(KEYS.employees, employees)
-  return updated
-}
-
-export function deleteEmployee(id: string): boolean {
-  const employees = getEmployees()
-  const filtered = employees.filter((e) => e.employeeId !== id)
-  if (filtered.length === employees.length) return false
-  setItem(KEYS.employees, filtered)
-  return true
-}
-
-export function getDepartments(): string[] {
-  return getItem<string[]>(KEYS.departments, DEFAULT_DEPARTMENTS)
-}
-
-export function addDepartment(name: string) {
-  const depts = getDepartments()
-  if (!depts.includes(name)) {
-    setItem(KEYS.departments, [...depts, name])
+  } catch {
+    return false
   }
 }
 
-export function removeDepartment(name: string) {
-  const depts = getDepartments()
-  setItem(KEYS.departments, depts.filter((d) => d !== name))
+export async function logout() {
+  await api("/auth/logout", { method: "POST" })
 }
 
-export function getDesignations(): string[] {
-  return getItem<string[]>(KEYS.designations, DEFAULT_DESIGNATIONS)
-}
-
-export function addDesignation(name: string) {
-  const desigs = getDesignations()
-  if (!desigs.includes(name)) {
-    setItem(KEYS.designations, [...desigs, name])
+export async function isLoggedIn(): Promise<boolean> {
+  try {
+    const res = await api<{ authenticated: boolean }>("/auth/me")
+    return res.authenticated
+  } catch {
+    return false
   }
 }
 
-export function removeDesignation(name: string) {
-  const desigs = getDesignations()
-  setItem(KEYS.designations, desigs.filter((d) => d !== name))
+export async function getEmployees(params?: {
+  search?: string
+  department?: string
+  status?: string
+}): Promise<EmployeeData[]> {
+  const qs = new URLSearchParams()
+  if (params?.search) qs.set("search", params.search)
+  if (params?.department && params.department !== "all") qs.set("department", params.department)
+  if (params?.status) qs.set("status", params.status)
+  const q = qs.toString()
+  return api<EmployeeData[]>(`/employees${q ? `?${q}` : ""}`)
 }
 
-export function getSettings() {
-  return getItem<{ idPrefix: string }>(KEYS.settings, { idPrefix: ID_PREFIX })
-}
-
-export function updateSettings(settings: { idPrefix: string }) {
-  setItem(KEYS.settings, settings)
-}
-
-export function getStats() {
-  const employees = getEmployees()
-  return {
-    total: employees.length,
-    active: employees.filter((e) => e.status === "active").length,
-    inactive: employees.filter((e) => e.status === "inactive").length,
-    departments: new Set(employees.map((e) => e.department)).size,
+export async function getEmployee(id: string): Promise<EmployeeData | null> {
+  try {
+    return await api<EmployeeData>(`/employees/${encodeURIComponent(id)}`)
+  } catch {
+    return null
   }
 }
 
-export function searchEmployees(query: string, department?: string) {
-  let employees = getEmployees()
+export async function createEmployee(
+  data: Omit<EmployeeData, "status" | "createdAt" | "_id"> & { employeeId?: string }
+): Promise<EmployeeData> {
+  return api<EmployeeData>("/employees", {
+    method: "POST",
+    body: JSON.stringify({ ...data, status: "active" }),
+  })
+}
 
-  if (query) {
-    const q = query.toLowerCase()
-    employees = employees.filter(
-      (e) =>
-        e.name.toLowerCase().includes(q) ||
-        e.employeeId.toLowerCase().includes(q) ||
-        e.email.toLowerCase().includes(q) ||
-        e.department.toLowerCase().includes(q)
-    )
+export async function updateEmployee(
+  id: string,
+  data: Partial<EmployeeData>
+): Promise<EmployeeData | null> {
+  try {
+    return await api<EmployeeData>(`/employees/${encodeURIComponent(id)}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    })
+  } catch {
+    return null
   }
+}
 
-  if (department && department !== "all") {
-    employees = employees.filter((e) => e.department === department)
+export async function deleteEmployee(id: string): Promise<boolean> {
+  try {
+    await api(`/employees/${encodeURIComponent(id)}`, { method: "DELETE" })
+    return true
+  } catch {
+    return false
   }
+}
 
-  return employees
+export async function getDepartments(): Promise<string[]> {
+  const res = await api<{ departments?: string[] }>("/settings")
+  return res.departments ?? []
+}
+
+export async function addDepartment(name: string): Promise<string[]> {
+  const res = await api<{ departments: string[] }>("/settings/departments", {
+    method: "POST",
+    body: JSON.stringify({ department: name }),
+  })
+  return res.departments
+}
+
+export async function removeDepartment(name: string): Promise<string[]> {
+  const res = await api<{ departments: string[] }>("/settings/departments", {
+    method: "DELETE",
+    body: JSON.stringify({ department: name }),
+  })
+  return res.departments
+}
+
+export async function getDesignations(): Promise<string[]> {
+  const res = await api<{ designations?: string[] }>("/settings")
+  return res.designations ?? []
+}
+
+export async function addDesignation(name: string): Promise<string[]> {
+  const res = await api<{ designations: string[] }>("/settings/designations", {
+    method: "POST",
+    body: JSON.stringify({ designation: name }),
+  })
+  return res.designations
+}
+
+export async function removeDesignation(name: string): Promise<string[]> {
+  const res = await api<{ designations: string[] }>("/settings/designations", {
+    method: "DELETE",
+    body: JSON.stringify({ designation: name }),
+  })
+  return res.designations
+}
+
+export async function getSettings(): Promise<{ idPrefix: string }> {
+  const res = await api<{ brandConfig?: { idPrefix: string }; idPrefix?: string }>("/settings")
+  return res.brandConfig ?? { idPrefix: res.idPrefix ?? "LGM-KT" }
+}
+
+export async function updateSettings(settings: { idPrefix: string }) {
+  await api("/settings", {
+    method: "PUT",
+    body: JSON.stringify({ brandConfig: settings }),
+  })
+}
+
+export async function getStats(): Promise<{
+  total: number
+  active: number
+  inactive: number
+  departments: number
+}> {
+  return api("/stats")
 }

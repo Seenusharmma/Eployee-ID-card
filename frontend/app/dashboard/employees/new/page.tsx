@@ -37,7 +37,7 @@ export default function NewEmployeePage() {
   async function onSubmit(data: EmployeeFormValues) {
     setLoading(true)
     try {
-      const employee = createEmployee(data as any)
+      const employee = await createEmployee(data as any)
       toast.success("Employee created successfully")
       router.push(`/dashboard/employees/${employee.employeeId}`)
     } catch {

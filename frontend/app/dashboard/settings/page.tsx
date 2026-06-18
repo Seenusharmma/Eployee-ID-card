@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Save, Building2, Plus, Trash2 } from "lucide-react"
+import { Save, Building2, Plus, Trash2, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -28,56 +28,62 @@ export default function SettingsPage() {
   const [prefix, setPrefix] = useState("LGM-KT")
   const [primaryColor, setPrimaryColor] = useState(BRAND.colors.maroon)
   const [accentColor, setAccentColor] = useState(BRAND.colors.gold)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    setDepartments(getDepartments())
-    setDesignations(getDesignations())
-    setPrefix(getSettings().idPrefix)
+    async function load() {
+      const [depts, desigs, settings] = await Promise.all([
+        getDepartments(),
+        getDesignations(),
+        getSettings(),
+      ])
+      setDepartments(depts)
+      setDesignations(desigs)
+      setPrefix(settings.idPrefix)
+      setLoading(false)
+    }
+    load()
   }, [])
 
-  function handleAddDepartment() {
+  async function handleAddDepartment() {
     if (!newDept.trim()) return
-    addDepartment(newDept.trim())
-    setDepartments(getDepartments())
+    const updated = await addDepartment(newDept.trim())
+    setDepartments(updated)
     setNewDept("")
     toast.success("Department added")
   }
 
-  function handleRemoveDepartment(name: string) {
-    removeDepartment(name)
-    setDepartments(getDepartments())
+  async function handleRemoveDepartment(name: string) {
+    const updated = await removeDepartment(name)
+    setDepartments(updated)
     toast.success("Department removed")
   }
 
-  function handleAddDesignation() {
+  async function handleAddDesignation() {
     if (!newDesig.trim()) return
-    addDesignation(newDesig.trim())
-    setDesignations(getDesignations())
+    const updated = await addDesignation(newDesig.trim())
+    setDesignations(updated)
     setNewDesig("")
     toast.success("Designation added")
   }
 
-  function handleRemoveDesignation(name: string) {
-    removeDesignation(name)
-    setDesignations(getDesignations())
+  async function handleRemoveDesignation(name: string) {
+    const updated = await removeDesignation(name)
+    setDesignations(updated)
     toast.success("Designation removed")
   }
 
-  function handleSavePrefix() {
-    updateSettings({ idPrefix: prefix })
+  async function handleSavePrefix() {
+    await updateSettings({ idPrefix: prefix })
     toast.success("Prefix updated")
   }
 
-  function removeDepartment(name: string) {
-    setDepartments(departments.filter((d) => d !== name))
-    toast.success("Department removed")
-  }
-
-
-
-  function removeDesignation(name: string) {
-    setDesignations(designations.filter((d) => d !== name))
-    toast.success("Designation removed")
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-[#7A003C]" />
+      </div>
+    )
   }
 
   return (

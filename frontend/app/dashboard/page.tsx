@@ -28,8 +28,12 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    setStats(getStats())
-    setLoading(false)
+    async function load() {
+      const s = await getStats()
+      setStats(s)
+      setLoading(false)
+    }
+    load()
   }, [])
 
   const statCards = [

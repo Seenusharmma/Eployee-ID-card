@@ -7,7 +7,7 @@ import { Plus, Upload, FileText, Loader2, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { EmployeeTable } from "@/components/shared/employee-table"
 import IdCard from "@/components/shared/id-card"
-import { searchEmployees, deleteEmployee, createEmployee } from "@/lib/storage"
+import { getEmployees, deleteEmployee, createEmployee } from "@/lib/storage"
 import { toast } from "sonner"
 import { toPng } from "html-to-image"
 import jsPDF from "jspdf"
@@ -21,9 +21,10 @@ export default function EmployeesPage() {
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [generating, setGenerating] = useState(false)
 
-  function fetchEmployees() {
+  async function fetchEmployees() {
     setLoading(true)
-    setEmployees(searchEmployees(search, departmentFilter))
+    const data = await getEmployees({ search, department: departmentFilter })
+    setEmployees(data)
     setLoading(false)
   }
 
@@ -31,9 +32,9 @@ export default function EmployeesPage() {
     fetchEmployees()
   }, [search, departmentFilter])
 
-  function handleDelete(id: string) {
+  async function handleDelete(id: string) {
     if (!confirm("Are you sure you want to delete this employee?")) return
-    const ok = deleteEmployee(id)
+    const ok = await deleteEmployee(id)
     if (ok) {
       toast.success("Employee deleted")
       fetchEmployees()
@@ -51,12 +52,12 @@ export default function EmployeesPage() {
     return v
   }
 
-  function handleBulkUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleBulkUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
 
     const reader = new FileReader()
-    reader.onload = (evt) => {
+    reader.onload = async (evt) => {
       const text = evt.target?.result as string
       const rows = text.split("\n").slice(1)
       let success = 0
@@ -86,7 +87,7 @@ export default function EmployeesPage() {
         if (!emp.employeeId) continue
 
         try {
-          createEmployee(emp as any)
+          await createEmployee(emp as any)
           success++
         } catch { }
       }

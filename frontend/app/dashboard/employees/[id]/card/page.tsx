@@ -28,15 +28,18 @@ export default function IDCardPage({
   }, [params])
 
   useEffect(() => {
-    if (!id) return
-    const data = getEmployee(id)
-    if (!data) {
-      toast.error("Employee not found")
-      router.push("/dashboard/employees")
-      return
+    async function load() {
+      if (!id) return
+      const data = await getEmployee(id)
+      if (!data) {
+        toast.error("Employee not found")
+        router.push("/dashboard/employees")
+        return
+      }
+      setEmployee(data)
+      setLoading(false)
     }
-    setEmployee(data)
-    setLoading(false)
+    load()
   }, [id, router])
 
   async function captureBothCards(): Promise<string> {

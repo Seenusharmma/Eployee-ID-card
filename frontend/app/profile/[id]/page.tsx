@@ -27,10 +27,13 @@ export default function ProfilePage({
   }, [params])
 
   useEffect(() => {
-    if (!id) return
-    const data = getEmployee(id)
-    if (data) setEmployee(data)
-    setLoading(false)
+    async function load() {
+      if (!id) return
+      const data = await getEmployee(id)
+      if (data) setEmployee(data)
+      setLoading(false)
+    }
+    load()
   }, [id])
 
   if (loading) {

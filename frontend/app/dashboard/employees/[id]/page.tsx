@@ -48,20 +48,23 @@ export default function ViewEmployeePage({
   }, [params])
 
   useEffect(() => {
-    if (!id) return
-    const emp = getEmployee(id)
-    if (!emp) {
-      toast.error("Employee not found")
-      router.push("/dashboard/employees")
-      return
+    async function load() {
+      if (!id) return
+      const emp = await getEmployee(id)
+      if (!emp) {
+        toast.error("Employee not found")
+        router.push("/dashboard/employees")
+        return
+      }
+      setEmployee(emp)
+      setLoading(false)
     }
-    setEmployee(emp)
-    setLoading(false)
+    load()
   }, [id, router])
 
-  function handleDelete() {
+  async function handleDelete() {
     if (!confirm("Are you sure you want to delete this employee?")) return
-    const ok = deleteEmployee(id)
+    const ok = await deleteEmployee(id)
     if (ok) {
       toast.success("Employee deleted")
       router.push("/dashboard/employees")

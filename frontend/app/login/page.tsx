@@ -14,8 +14,8 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { toast } from "sonner"
 
-const DEMO_EMAIL = "admin@legends.com"
-const DEMO_PASSWORD = "admin123"
+const DEMO_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL
+const DEMO_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD
 
 export default function LoginPage() {
   const router = useRouter()
@@ -34,9 +34,9 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   })
 
-  function onSubmit(data: LoginFormValues) {
+  async function onSubmit(data: LoginFormValues) {
     setLoading(true)
-    const success = login(data.email, data.password)
+    const success = await login(data.email, data.password)
     if (success) {
       toast.success("Login successful")
       router.push("/dashboard")
@@ -113,16 +113,7 @@ export default function LoginPage() {
                 )}
               </div>
 
-              <div className="rounded-lg bg-muted p-3 border border-[#C9A15D]/30">
-                <div className="flex items-start gap-2">
-                  <Info className="h-4 w-4 text-[#C9A15D] mt-0.5 flex-shrink-0" />
-                  <div className="text-xs text-muted-foreground space-y-0.5">
-                    <p className="font-medium text-[#C9A15D]">Demo Credentials</p>
-                    <p>Email: <code className="bg-background px-1 rounded">{DEMO_EMAIL}</code></p>
-                    <p>Password: <code className="bg-background px-1 rounded">{DEMO_PASSWORD}</code></p>
-                  </div>
-                </div>
-              </div>
+              
               <Button
                 type="submit"
                 className="w-full bg-gradient-to-r from-[#7A003C] to-[#C9A15D] hover:from-[#6a0032] hover:to-[#b8914d] text-white font-medium"

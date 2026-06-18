@@ -57,15 +57,16 @@ export default function EditEmployeePage({
   }
 
   useEffect(() => {
-    if (!id) return
-    const data = getEmployee(id)
-    if (!data) {
-      toast.error("Employee not found")
-      router.push("/dashboard/employees")
-      return
-    }
-    setEmployee(data)
-    const formValues: EmployeeFormValues = {
+    async function load() {
+      if (!id) return
+      const data = await getEmployee(id)
+      if (!data) {
+        toast.error("Employee not found")
+        router.push("/dashboard/employees")
+        return
+      }
+      setEmployee(data)
+      const formValues: EmployeeFormValues = {
       employeeId: data.employeeId || "",
       name: data.name || "",
       fatherName: data.fatherName || "",
@@ -82,14 +83,16 @@ export default function EditEmployeePage({
       photoUrl: data.photoUrl || "",
       signatureUrl: data.signatureUrl || "",
     }
-    setPreviewData(formValues)
-    setLoading(false)
+      setPreviewData(formValues)
+      setLoading(false)
+    }
+    load()
   }, [id, router])
 
   async function onSubmit(data: EmployeeFormValues) {
     setSaving(true)
     try {
-      updateEmployee(id, data as any)
+      await updateEmployee(id, data as any)
       toast.success("Employee updated successfully")
       router.push(`/dashboard/employees/${id}`)
     } catch {

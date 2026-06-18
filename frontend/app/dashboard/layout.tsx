@@ -40,15 +40,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    initStorage()
-    setMounted(true)
-    if (!isLoggedIn()) {
-      router.push("/login")
+    async function init() {
+      await initStorage()
+      const loggedIn = await isLoggedIn()
+      setMounted(true)
+      if (!loggedIn) {
+        router.push("/login")
+      }
     }
+    init()
   }, [router])
 
-  function handleLogout() {
-    logout()
+  async function handleLogout() {
+    await logout()
     router.push("/login")
   }
 

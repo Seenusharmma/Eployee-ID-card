@@ -48,9 +48,7 @@ const IDCard = forwardRef<HTMLDivElement, IDCardProps>(
       >
         <div className="bg-white px-5 pt-6 pb-3 text-center">
           <div className="flex items-center justify-center gap-2 mb-1">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#7A003C] to-[#C9A15D] flex items-center justify-center flex-shrink-0">
-              <span className="text-[10px] font-bold text-white">LM</span>
-            </div>
+            
             <div>
               <h1
                 className="text-base font-bold tracking-tight"
@@ -64,7 +62,7 @@ const IDCard = forwardRef<HTMLDivElement, IDCardProps>(
             className="text-[9px] tracking-[0.25em] font-medium"
             style={{ color: "#C9A15D" }}
           >
-            KINGDOM OF BREWS
+            EMPLLOYEE ID 
           </p>
         </div>
 
