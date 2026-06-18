@@ -28,6 +28,7 @@ export default function NewEmployeePage() {
     department: "",
     designation: "",
     emergencyContact: "",
+    aadhaarNumber: "",
     address: "",
     photoUrl: "",
     signatureUrl: "",

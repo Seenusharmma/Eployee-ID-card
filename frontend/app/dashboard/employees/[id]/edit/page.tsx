@@ -34,6 +34,7 @@ export default function EditEmployeePage({
     department: "",
     designation: "",
     emergencyContact: "",
+    aadhaarNumber: "",
     address: "",
     photoUrl: "",
     signatureUrl: "",
@@ -43,6 +44,17 @@ export default function EditEmployeePage({
   useEffect(() => {
     params.then((p) => setId(p.id))
   }, [params])
+
+  function toDateInput(value: string): string {
+    if (!value) return ""
+    try {
+      const d = new Date(value)
+      if (isNaN(d.getTime())) return value
+      return d.toISOString().split("T")[0]
+    } catch {
+      return value
+    }
+  }
 
   useEffect(() => {
     if (!id) return
@@ -60,15 +72,12 @@ export default function EditEmployeePage({
       contactNumber: data.contactNumber || "",
       email: data.email || "",
       bloodGroup: data.bloodGroup || "",
-      dateOfBirth: data.dateOfBirth
-        ? new Date(data.dateOfBirth).toISOString().split("T")[0]
-        : "",
-      dateOfJoining: data.dateOfJoining
-        ? new Date(data.dateOfJoining).toISOString().split("T")[0]
-        : "",
+      dateOfBirth: toDateInput(data.dateOfBirth),
+      dateOfJoining: toDateInput(data.dateOfJoining),
       department: data.department || "",
       designation: data.designation || "",
       emergencyContact: data.emergencyContact || "",
+      aadhaarNumber: data.aadhaarNumber || "",
       address: data.address || "",
       photoUrl: data.photoUrl || "",
       signatureUrl: data.signatureUrl || "",

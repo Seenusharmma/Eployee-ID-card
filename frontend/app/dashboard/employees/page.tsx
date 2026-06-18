@@ -63,7 +63,7 @@ export default function EmployeesPage() {
 
       for (const row of rows) {
         const cols = row.split(",")
-        if (cols.length < 12) continue
+        if (cols.length < 13) continue
 
         const emp = {
           employeeId: cols[0]?.trim(),
@@ -77,7 +77,8 @@ export default function EmployeesPage() {
           department: cols[8]?.trim(),
           designation: cols[9]?.trim(),
           emergencyContact: cols[10]?.trim(),
-          address: cols[11]?.trim(),
+          aadhaarNumber: cols[11]?.trim(),
+          address: cols[12]?.trim(),
           photoUrl: "",
           signatureUrl: "",
         }
@@ -146,10 +147,10 @@ export default function EmployeesPage() {
   }
 
   function handleDownloadSample() {
-    const headers = "employeeId,name,fatherName,contactNumber,email,bloodGroup,dateOfBirth,dateOfJoining,department,designation,emergencyContact,address"
+    const headers = "employeeId,name,fatherName,contactNumber,email,bloodGroup,dateOfBirth,dateOfJoining,department,designation,emergencyContact,aadhaarNumber,address"
     const rows = [
-      "LGM-KT-050,Jane Smith,Robert Smith,9876543210,jane@example.com,B+,1992-05-20,2024-06-01,Kitchen,Head Chef,9123456780,456 Oak Ave",
-      "LGM-KT-051,Mike Johnson,Tom Johnson,8765432109,mike@example.com,O+,1988-11-03,2023-09-15,Operations,Floor Manager,9988776655,789 Pine Rd",
+      "LGM-KT-050,Jane Smith,Robert Smith,9876543210,jane@example.com,B+,1992-05-20,2024-06-01,Kitchen,Head Chef,9123456780,123456789012,456 Oak Ave",
+      "LGM-KT-051,Mike Johnson,Tom Johnson,8765432109,mike@example.com,O+,1988-11-03,2023-09-15,Operations,Floor Manager,9988776655,987654321098,789 Pine Rd",
     ]
     const csv = [headers, ...rows].join("\n")
     const blob = new Blob([csv], { type: "text/csv" })

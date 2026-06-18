@@ -16,6 +16,7 @@ interface EmployeeData {
   department: string
   designation: string
   emergencyContact: string
+  aadhaarNumber: string
   address: string
   photoUrl: string
   signatureUrl: string
@@ -143,6 +144,22 @@ const IDCard = forwardRef<HTMLDivElement, IDCardProps>(
               </span>
               <span className="text-gray-700">
                 {employee.dateOfJoining ? safeDate(employee.dateOfJoining) : "—"}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-semibold" style={{ color: "#7A003C" }}>
+                Emergency
+              </span>
+              <span className="text-gray-700">
+                {employee.emergencyContact || "—"}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-semibold" style={{ color: "#7A003C" }}>
+                Aadhaar No.
+              </span>
+              <span className="text-gray-700 font-mono text-[10px]">
+                {employee.aadhaarNumber || "—"}
               </span>
             </div>
           </div>

@@ -180,6 +180,15 @@ export default function ViewEmployeePage({
                     </p>
                   </div>
                 </div>
+                <div className="flex items-center gap-3">
+                  <BadgeAlert className="h-4 w-4 text-[#C9A15D]" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Aadhaar Number</p>
+                    <p className="text-sm font-medium font-mono">
+                      {employee.aadhaarNumber || "—"}
+                    </p>
+                  </div>
+                </div>
               </div>
               <Separator className="my-4" />
               <div className="flex items-start gap-3">

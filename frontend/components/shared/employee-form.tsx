@@ -283,6 +283,22 @@ export function EmployeeForm({
             </p>
           )}
         </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="aadhaarNumber">Aadhaar Number *</Label>
+          <Input
+            id="aadhaarNumber"
+            placeholder="12-digit Aadhaar number"
+            maxLength={12}
+            {...register("aadhaarNumber", { onChange: notifyChange })}
+            className={errors.aadhaarNumber ? "border-destructive" : ""}
+          />
+          {errors.aadhaarNumber && (
+            <p className="text-xs text-destructive">
+              {errors.aadhaarNumber.message}
+            </p>
+          )}
+        </div>
       </motion.div>
 
       <div className="space-y-2">

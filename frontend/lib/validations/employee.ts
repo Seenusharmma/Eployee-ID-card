@@ -12,6 +12,7 @@ export const employeeSchema = z.object({
   department: z.string().min(1, "Department is required"),
   designation: z.string().min(1, "Designation is required"),
   emergencyContact: z.string().min(10, "Emergency contact must be at least 10 digits"),
+  aadhaarNumber: z.string().min(12, "Aadhaar number must be at least 12 digits").max(12, "Aadhaar number must be 12 digits"),
   address: z.string().min(5, "Address must be at least 5 characters"),
   photoUrl: z.string().optional(),
   signatureUrl: z.string().optional(),

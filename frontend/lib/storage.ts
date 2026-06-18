@@ -12,6 +12,7 @@ export interface EmployeeData {
   department: string
   designation: string
   emergencyContact: string
+  aadhaarNumber: string
   address: string
   photoUrl: string
   signatureUrl: string
@@ -146,6 +147,7 @@ export function createEmployee(data: Omit<EmployeeData, "status" | "createdAt"> 
     department: data.department,
     designation: data.designation,
     emergencyContact: data.emergencyContact,
+    aadhaarNumber: data.aadhaarNumber || "",
     address: data.address,
     photoUrl: data.photoUrl || "",
     signatureUrl: data.signatureUrl || "",
