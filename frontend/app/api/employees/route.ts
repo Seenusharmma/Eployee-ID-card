@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { connectDB } from "@/lib/mongodb"
 import { Employee } from "@/lib/models/employee"
+import { Settings } from "@/lib/models/settings"
 
 export async function GET(req: Request) {
   try {
@@ -32,6 +33,17 @@ export async function POST(req: Request) {
   try {
     await connectDB()
     const body = await req.json()
+
+    if (!body.employeeId) {
+      const brandDoc = await Settings.findOne({ key: "brandConfig" })
+      const prefix = brandDoc?.value?.idPrefix || "LGM-KT"
+      const last = await Employee.findOne({ employeeId: new RegExp(`^${prefix}-\\d{3}$`) })
+        .sort({ employeeId: -1 })
+        .lean()
+      const lastNum = last ? parseInt(last.employeeId.split("-")[2], 10) : 0
+      body.employeeId = `${prefix}-${String(lastNum + 1).padStart(3, "0")}`
+    }
+
     const employee = await Employee.create(body)
     return NextResponse.json(employee, { status: 201 })
   } catch (err: unknown) {
