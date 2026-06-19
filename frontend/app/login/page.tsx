@@ -82,7 +82,7 @@ export default function LoginPage() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="admin@legends.com"
+                  placeholder="test@example.com"
                   {...register("email")}
                   className={errors.email ? "border-destructive" : ""}
                 />

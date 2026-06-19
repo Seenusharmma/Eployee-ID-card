@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { Plus, Upload, FileText, Loader2, Download } from "lucide-react"
+import { Plus, Upload, FileText, Loader2, Download, Archive } from "lucide-react"
+import JSZip from "jszip"
 import { Button } from "@/components/ui/button"
 import { EmployeeTable } from "@/components/shared/employee-table"
 import IdCard from "@/components/shared/id-card"
+import FrontIdCard from "@/components/shared/front-id-card"
 import { getEmployees, deleteEmployee, createEmployee } from "@/lib/storage"
 import { toast } from "sonner"
 import { toPng } from "html-to-image"
@@ -20,6 +22,7 @@ export default function EmployeesPage() {
   const [departmentFilter, setDepartmentFilter] = useState("all")
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [generating, setGenerating] = useState(false)
+  const [downloadingCards, setDownloadingCards] = useState(false)
 
   async function fetchEmployees() {
     setLoading(true)
@@ -147,6 +150,63 @@ export default function EmployeesPage() {
     setGenerating(false)
   }
 
+  async function handleDownloadAllCards() {
+    const all = await getEmployees()
+    if (all.length === 0) {
+      toast.error("No employees found")
+      return
+    }
+    setDownloadingCards(true)
+    const zip = new JSZip()
+    const { renderToString } = await import("react-dom/server")
+    const { default: React } = await import("react")
+
+    async function captureCard(element: React.ReactElement) {
+      const div = document.createElement("div")
+      div.style.position = "fixed"
+      div.style.left = "0"
+      div.style.top = "0"
+      div.style.width = "320px"
+      div.style.opacity = "0.99"
+      div.style.pointerEvents = "none"
+      div.style.zIndex = "-9999"
+      div.style.backgroundColor = "#ffffff"
+      document.body.appendChild(div)
+
+      div.innerHTML = renderToString(element)
+      await new Promise((r) => setTimeout(r, 500))
+
+      const dataUrl = await toPng(div, { quality: 1, pixelRatio: 2 })
+      document.body.removeChild(div)
+
+      const res = await fetch(dataUrl)
+      return res.blob()
+    }
+
+    const frontBlob = await captureCard(
+      React.createElement(FrontIdCard, { preview: true })
+    )
+    zip.file("Front Card.png", frontBlob)
+
+    for (const emp of all) {
+      const blob = await captureCard(
+        React.createElement(IdCard, { employee: emp, preview: true })
+      )
+      const name = emp.name.replace(/[<>:"/\\|?*]/g, "_")
+      zip.file(`${name}.png`, blob)
+    }
+
+    const finalBlob = await zip.generateAsync({ type: "blob" })
+    const url = URL.createObjectURL(finalBlob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = "employee-id-cards.zip"
+    a.click()
+    URL.revokeObjectURL(url)
+    setDownloadingCards(false)
+    toast.success(`${all.length} ID card images downloaded`)
+  }
+
   function handleDownloadSample() {
     const headers = "employeeId,name,fatherName,contactNumber,email,bloodGroup,dateOfBirth,dateOfJoining,department,designation,emergencyContact,aadhaarNumber,address"
     const rows = [
@@ -190,6 +250,19 @@ export default function EmployeesPage() {
               Generate ID Cards ({selectedIds.length})
             </Button>
           )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleDownloadAllCards}
+            disabled={downloadingCards}
+          >
+            {downloadingCards ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Archive className="mr-2 h-4 w-4" />
+            )}
+            Download All Cards
+          </Button>
           <Button
             variant="outline"
             size="sm"
