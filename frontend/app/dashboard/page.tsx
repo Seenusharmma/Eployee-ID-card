@@ -9,28 +9,42 @@ import {
   Building2,
   TrendingUp,
   ArrowUpRight,
+  Camera,
+  FileSignature,
+  ImageIcon,
+  Ban,
 } from "lucide-react"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { getStats } from "@/lib/storage"
+import { getStats, getEmployees } from "@/lib/storage"
+import type { EmployeeData } from "@/lib/storage"
 
 interface DashboardStats {
   total: number
   active: number
   inactive: number
   departments: number
+  withPhoto: number
+  withSignature: number
+  withBoth: number
+  withNeither: number
 }
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState<DashboardStats>({ total: 0, active: 0, inactive: 0, departments: 0 })
+  const [stats, setStats] = useState<DashboardStats>({
+    total: 0, active: 0, inactive: 0, departments: 0,
+    withPhoto: 0, withSignature: 0, withBoth: 0, withNeither: 0,
+  })
+  const [employees, setEmployees] = useState<EmployeeData[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function load() {
-      const s = await getStats()
+      const [s, emps] = await Promise.all([getStats(), getEmployees()])
       setStats(s)
+      setEmployees(emps)
       setLoading(false)
     }
     load()
@@ -128,6 +142,125 @@ export default function DashboardPage() {
                 </Link>
               </motion.div>
             ))}
+      </div>
+
+      <div>
+        <h2 className="text-xl font-heading font-bold text-[#7A003C] mb-4">ID Images Overview</h2>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
+          {loading
+            ? Array.from({ length: 4 }).map((_, i) => (
+                <Card key={i}>
+                  <CardHeader className="flex flex-row items-center justify-between pb-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-8 w-8 rounded" />
+                  </CardHeader>
+                  <CardContent>
+                    <Skeleton className="h-8 w-16 mb-1" />
+                    <Skeleton className="h-3 w-20" />
+                  </CardContent>
+                </Card>
+              ))
+            : [
+                {
+                  title: "With Photo",
+                  value: stats.withPhoto,
+                  icon: Camera,
+                  color: "from-purple-600 to-purple-400",
+                },
+                {
+                  title: "With Signature",
+                  value: stats.withSignature,
+                  icon: FileSignature,
+                  color: "from-orange-600 to-orange-400",
+                },
+                {
+                  title: "With Both",
+                  value: stats.withBoth,
+                  icon: ImageIcon,
+                  color: "from-teal-600 to-teal-400",
+                },
+                {
+                  title: "With Neither",
+                  value: stats.withNeither,
+                  icon: Ban,
+                  color: "from-gray-600 to-gray-400",
+                },
+              ].map((stat, i) => (
+                <motion.div
+                  key={stat.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                >
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">
+                        {stat.title}
+                      </CardTitle>
+                      <div
+                        className={`h-8 w-8 rounded-lg bg-gradient-to-br ${stat.color} flex items-center justify-center`}
+                      >
+                        <stat.icon className="h-4 w-4 text-white" />
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{stat.value}</div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        out of {stats.total} total
+                      </p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+        </div>
+
+        {!loading && employees.filter(e => e.photoUrl || e.signatureUrl).length > 0 && (
+          <Card className="glass-card mb-6">
+            <CardHeader>
+              <CardTitle className="text-lg font-heading text-[#7A003C]">
+                Employees with ID Images
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b text-left text-muted-foreground">
+                      <th className="pb-2 font-medium">Employee ID</th>
+                      <th className="pb-2 font-medium">Name</th>
+                      <th className="pb-2 font-medium">Photo</th>
+                      <th className="pb-2 font-medium">Signature</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {employees
+                      .filter(e => e.photoUrl || e.signatureUrl)
+                      .map(emp => (
+                        <tr key={emp._id} className="border-b last:border-0">
+                          <td className="py-2 pr-4 font-mono text-xs">{emp.employeeId}</td>
+                          <td className="py-2 pr-4">{emp.name}</td>
+                          <td className="py-2 pr-4">
+                            {emp.photoUrl ? (
+                              <span className="text-green-600 font-medium">Yes</span>
+                            ) : (
+                              <span className="text-muted-foreground">No</span>
+                            )}
+                          </td>
+                          <td className="py-2">
+                            {emp.signatureUrl ? (
+                              <span className="text-green-600 font-medium">Yes</span>
+                            ) : (
+                              <span className="text-muted-foreground">No</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">

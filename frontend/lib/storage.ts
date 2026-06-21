@@ -174,6 +174,10 @@ export async function getStats(): Promise<{
   active: number
   inactive: number
   departments: number
+  withPhoto: number
+  withSignature: number
+  withBoth: number
+  withNeither: number
 }> {
   return api("/stats")
 }

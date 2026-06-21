@@ -6,8 +6,8 @@ interface MongooseCache {
   conn: typeof mongoose | null
   promise: Promise<typeof mongoose> | null
 }
-
-let cached: MongooseCache = (global as { mongoose?: MongooseCache }).mongoose ?? { conn: null, promise: null }
+// chnage let to cosnt and add type annotation {if needed then change this}
+const cached: MongooseCache = (global as { mongoose?: MongooseCache }).mongoose ?? { conn: null, promise: null }
 
 if (!(global as { mongoose?: MongooseCache }).mongoose) {
   ;(global as { mongoose?: MongooseCache }).mongoose = cached

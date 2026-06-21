@@ -76,7 +76,8 @@ export default function ProfilePage({
                 <span className="text-xs font-bold text-[#C9A15D]">LM</span>
               </div>
               <h1 className="text-base font-bold text-white" style={{ fontFamily: "'Playfair Display', serif" }}>
-                Legends Microbrewery
+                Legends Mi
+                crobrewery
               </h1>
             </div>
             <p className="text-[9px] tracking-[0.3em] text-[#C9A15D] uppercase">Employee Verification</p>
